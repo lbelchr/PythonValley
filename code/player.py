@@ -5,7 +5,7 @@ from timer import Timer
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites):
+    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer):
         super().__init__(group)
 
         # initializations
@@ -59,11 +59,12 @@ class Player(pygame.sprite.Sprite):
         # interaction
         self.tree_sprites = tree_sprites
         self.interaction_sprites = interaction_sprites
+        self.soil_layer = soil_layer
         self.sleep = False
 
     def use_tool(self):
         if self.selected_tool == 'hoe':
-            pass
+            self.soil_layer.get_hit(self.target_pos)
 
         if self.selected_tool == 'axe':
             for tree in self.tree_sprites.sprites():
@@ -71,7 +72,7 @@ class Player(pygame.sprite.Sprite):
                     tree.damage()
 
         if self.selected_tool == 'water':
-            pass
+            self.soil_layer.water(self.target_pos)
 
     def get_target_pos(self):
         self.target_pos = self.rect.center + PLAYER_TOOL_OFFSET[self.status.split('_')[0]]
@@ -99,7 +100,7 @@ class Player(pygame.sprite.Sprite):
     def input(self):
         keys = pygame.key.get_pressed()
 
-        if not self.timers['tool use'].active:
+        if not self.timers['tool use'].active and not self.sleep:
             # directions
             if keys[pygame.K_UP]:
                 self.direction.y = -1
@@ -146,7 +147,6 @@ class Player(pygame.sprite.Sprite):
                 if self.seed_index >= len(self.seeds):
                     self.seed_index = 0
                 self.selected_seed = self.seeds[self.seed_index]
-                print('selected seed: ' + self.selected_seed)
 
             # interaction
             if keys[pygame.K_RETURN]:

@@ -120,6 +120,6 @@ class Tree(Generic):
                 Generic(
                     pos=(x, y),
                     surf=self.apple_surf,
-                    groups=[self.apple_sprites, self.all_sprites_group],
+                    groups=(self.apple_sprites, self.all_sprites_group),
                     z=LAYERS['fruit'],
                     name='Apple')
