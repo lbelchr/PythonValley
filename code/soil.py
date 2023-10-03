@@ -41,8 +41,6 @@ class SoilLayer:
     def create_soil_grid(self):
         ground = pygame.image.load('./graphics/world/ground.png')
         h_tiles, v_tiles = ground.get_width() // TILE_SIZE, ground.get_height() // TILE_SIZE
-        print(h_tiles)
-        print(v_tiles)
 
         self.grid = [[[] for col in range(h_tiles)] for row in range(v_tiles)]
 
@@ -69,6 +67,8 @@ class SoilLayer:
                 if 'F' in self.grid[y][x]:
                     self.grid[y][x].append('X')
                     self.create_soil_tiles()
+                    if self.raining:
+                        self.water_all()
 
     def water(self, target_pos):
         for soil_sprite in self.soil_sprites.sprites():
@@ -81,6 +81,15 @@ class SoilLayer:
                           surf=choice(self.water_surfs),
                           groups=(self.all_sprites, self.water_sprites)
                           )
+
+    def water_all(self):
+        for index_row, row in enumerate(self.grid):
+            for index_col, cell in enumerate(row):
+                if 'X' in cell and 'W' not in cell:
+                    cell.append('W')
+                    x = index_col * TILE_SIZE
+                    y = index_row * TILE_SIZE
+                    WaterTile((x, y), choice(self.water_surfs), (self.all_sprites, self.water_sprites))
 
     def remove_water(self):
         for sprite in self.water_sprites.sprites():
@@ -145,13 +154,9 @@ class SoilLayer:
                     if all((l, r, b)) and not t:
                         tile_type = 'lrt'
 
-
-
-
-
                     SoilTile(
                         pos=(index_col * TILE_SIZE, index_row * TILE_SIZE),
                         surf=self.soil_surfs[tile_type],
-                        groups=[self.all_sprites, self.soil_sprites]
+                        groups=(self.all_sprites, self.soil_sprites)
                     )
 
