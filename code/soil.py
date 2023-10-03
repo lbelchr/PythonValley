@@ -27,6 +27,7 @@ class SoilLayer:
         # sprite roots
         self.hit_rects = None
         self.grid = None
+        self.raining = False
         self.all_sprites = all_sprites
         self.soil_sprites = pygame.sprite.Group()
         self.water_sprites = pygame.sprite.Group()

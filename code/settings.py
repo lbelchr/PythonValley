@@ -1,6 +1,6 @@
 from pygame.math import Vector2
 
-DEBUG = True
+DEBUG = False
 
 # screen
 SCREEN_WIDTH = 1280
