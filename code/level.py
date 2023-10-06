@@ -7,7 +7,7 @@ from pytmx.util_pygame import load_pygame
 from support import *
 from transition import Transition
 from soil import SoilLayer
-from sky import Rain
+from sky import Rain, Sky
 from random import randint
 
 
@@ -23,7 +23,7 @@ class Level:
         self.collision_sprites = pygame.sprite.Group()
         self.tree_sprites = pygame.sprite.Group()
         self.interaction_sprites = pygame.sprite.Group()
-        self.soil_layer = SoilLayer(self.all_sprites)
+        self.soil_layer = SoilLayer(self.all_sprites, self.collision_sprites)
         self.setup()
         self.overlay = Overlay(self.player)
         self.transition = Transition(self.reset, self.player)
@@ -32,6 +32,7 @@ class Level:
         self.rain = Rain(self.all_sprites)
         self.raining = randint(0, 10) > 3
         self.soil_layer.raining = self.raining
+        self.sky = Sky()
 
     def setup(self):
         tmx_data = load_pygame('./data/map.tmx')
@@ -97,6 +98,8 @@ class Level:
         self.player.item_inventory[item] += 1
 
     def reset(self):
+        # plants
+        self.soil_layer.update_plants()
 
         # apples on the trees
         for tree in self.tree_sprites.sprites():
@@ -112,16 +115,32 @@ class Level:
         if self.raining:
             self.soil_layer.water_all()
 
+        # sky
+        self.sky.start_color = [255, 255, 255]
+
+    def plant_collision(self):
+        if self.soil_layer.plant_sprites:
+            for plant in self.soil_layer.plant_sprites.sprites():
+                if plant.harvestable and plant.rect.colliderect(self.player.hitbox):
+                    self.player_add(plant.plant_type)
+                    plant.kill()
+                    Particle(plant.rect.topleft, plant.image, (self.all_sprites,), LAYERS['main'])
+                    self.soil_layer.grid[plant.rect.centery // TILE_SIZE][plant.rect.centerx // TILE_SIZE].remove('P')
+
     def run(self, dt):
         self.display_surface.fill('black')
         self.all_sprites.custom_draw(self.player)
         self.all_sprites.update(dt)
+        self.plant_collision()
 
         self.overlay.display()
 
         # rain
         if self.raining:
             self.rain.update()
+
+        # daytime
+        self.sky.display(dt)
 
         # transition overlay
         if self.player.sleep:
